@@ -31,16 +31,16 @@ class Usuario(models.Model):
 
     nome = models.CharField(max_length=255)
 
-    # EmailField valida o formato do email automaticamente (precisa ter @, domínio, etc.)
+    # EmailField valida o formato do email automaticamente
     # unique=True impede dois usuários com o mesmo email
     # db_index=True cria um índice no banco, tornando buscas por email muito mais rápidas
     email = models.EmailField(max_length=255, unique=True, db_index=True)
 
-    # nunca salvamos a senha pura aqui — apenas o hash gerado pelo método set_senha()
+    # nunca salvamos a senha pura aqui, apenas o hash gerado pelo método set_senha()
     senha_hash = models.TextField()
 
     # null=True  → permite NULL no banco de dados
-    # blank=True → permite campo vazio em formulários Django (validação no Python)
+    # blank=True → permite campo vazio em formulários Django
     # Ambos juntos = campo totalmente opcional
     idade = models.IntegerField(null=True, blank=True)
     telefone = models.CharField(max_length=50, null=True, blank=True)
@@ -55,14 +55,14 @@ class Usuario(models.Model):
         """
         Recebe a senha pura (ex: "minhasenha123") e salva o hash no campo senha_hash.
         Exemplo de uso:
-            usuario = Usuario(nome="João", email="joao@email.com")
+            usuario = Usuario(nome="ana", email="ana@email.com")
             usuario.set_senha("minhasenha123")
             usuario.save()
         """
         self.senha_hash = make_password(senha_raw)
 
     def __str__(self) -> str:
-        # Define como o objeto aparece no admin e no terminal (ex: print(usuario))
+        # Define como o objeto aparece no admin e no terminal
         return f"{self.nome} <{self.email}>"
 
 
@@ -70,11 +70,13 @@ class LoginSocial(models.Model):
     """
     Armazena os vínculos de login via redes sociais (Google, Apple, etc.).
     Um usuário pode ter vários logins sociais — ex: entrar com Google E com Apple.
-    Por isso é ForeignKey (muitos para um) e não OneToOneField.
+    Por isso é ForeignKey, muitos para um.
     """
 
     class Meta:
+        # nome exato da tabela no banco de dados
         db_table = "login_social"
+        # esses nomes aparecem no painel admin do Django
         verbose_name = "Login Social"
         verbose_name_plural = "Logins Sociais"
         constraints = [
@@ -88,7 +90,7 @@ class LoginSocial(models.Model):
         ]
 
     # TextChoices cria um enum no Python com os valores aceitos pelo campo.
-    # Cada linha tem: NOME_PYTHON = "valor_no_banco", "Label legível"
+    # Cada linha tem: NOME_VARIAVEL_PYTHON = "valor_no_banco", "Label legível"
     class Provider(models.TextChoices):
         GOOGLE   = "google",   "Google"
         APPLE    = "apple",    "Apple"
@@ -104,7 +106,7 @@ class LoginSocial(models.Model):
     # ForeignKey = chave estrangeira → muitos LoginSocial podem pertencer a um Usuario
     # on_delete=CASCADE → se o Usuario for deletado, seus logins sociais também são deletados
     # related_name → permite acessar os logins de um usuário com: usuario.logins_sociais.all()
-    # db_column → garante que o nome da coluna no banco seja "usuario_id" (igual ao seu schema)
+    # db_column → garante que o nome da coluna no banco seja "usuario_id"
     usuario = models.ForeignKey(
         Usuario,
         on_delete=models.CASCADE,
@@ -141,7 +143,9 @@ class Administrador(models.Model):
     """
 
     class Meta:
+        # nome exato da tabela no banco de dados
         db_table = "administrador"
+        # esses nomes aparecem no painel admin do Django
         verbose_name = "Administrador"
         verbose_name_plural = "Administradores"
 
@@ -158,7 +162,7 @@ class Administrador(models.Model):
     )
 
     # OneToOneField → um Usuario só pode ser administrador uma vez (relação 1 para 1)
-    # É como um ForeignKey com unique=True — garante que não existam dois registros
+    # É como um ForeignKey com unique=True, garante que não existam dois registros
     # de Administrador apontando para o mesmo Usuario
     usuario = models.OneToOneField(
         Usuario,
